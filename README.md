@@ -2,7 +2,7 @@
 
 Production-ready POC для анализа пользовательского фидбека с помощью OpenAI.
 
-Приложение принимает текст от пользователя, выполняет AI-анализ, сохраняет результат в SQLite через Prisma и показывает историю анализов в дашборде.
+Приложение принимает текст от пользователя, выполняет AI-анализ, сохраняет результат в Postgres через Prisma и показывает историю анализов в дашборде.
 
 ## Возможности
 
@@ -10,7 +10,7 @@ Production-ready POC для анализа пользовательского ф
 - Определение sentiment: `POSITIVE | NEUTRAL | NEGATIVE`
 - Краткое summary (1 предложение)
 - Actionable insight
-- Сохранение результатов в SQLite
+- Сохранение результатов в Postgres
 - Просмотр истории через `GET /api/feedbacks`
 - Минималистичный B2B UI (Sidebar + Form + Cards)
 
@@ -18,7 +18,7 @@ Production-ready POC для анализа пользовательского ф
 
 - Frontend: Next.js (App Router), React, TailwindCSS, Lucide Icons
 - Backend: Next.js Route Handlers (`runtime = "nodejs"`)
-- Database: SQLite + Prisma ORM
+- Database: Postgres + Prisma ORM
 - AI: OpenAI SDK (`gpt-4o-mini` по умолчанию)
 - Язык: TypeScript (strict)
 
@@ -63,7 +63,8 @@ model Feedback {
 Файл `.env`:
 
 ```env
-DATABASE_URL="file:./dev.db"
+POSTGRES_PRISMA_URL="postgres://user:password@host:5432/db?pgbouncer=true&connect_timeout=15"
+POSTGRES_URL_NON_POOLING="postgres://user:password@host:5432/db"
 OPENAI_API_KEY="your_openai_api_key_here"
 OPENAI_MODEL="gpt-4o-mini"
 ```
@@ -188,14 +189,12 @@ npm run build
 2. Установить Environment Variables:
    - `OPENAI_API_KEY`
    - `OPENAI_MODEL` (опционально)
-   - `DATABASE_URL`
+   - `POSTGRES_PRISMA_URL`
+   - `POSTGRES_URL_NON_POOLING`
 3. Build Command: `npm run build`
 4. Install Command: `npm install`
 
-Важно: SQLite-файл не подходит для надежного persistent storage в serverless-среде Vercel.
-
-- Для локальной разработки и demo/PoC SQLite достаточно.
-- Для production на Vercel рекомендуется заменить SQLite на managed БД (например, Postgres через Prisma), сохранив текущую архитектуру API и типы.
+Используй Vercel Postgres или любой managed Postgres. Prisma подключается через pooled URL и non-pooling URL.
 
 ## Troubleshooting
 
@@ -203,7 +202,7 @@ npm run build
   - проверить `OPENAI_API_KEY`
   - проверить доступность OpenAI API
 - `Could not load feedback records`
-  - проверить `DATABASE_URL`
+  - проверить `POSTGRES_PRISMA_URL`
   - выполнить `npm run prisma:push`
 
 ## Лицензия
