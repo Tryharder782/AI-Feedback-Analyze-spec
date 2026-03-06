@@ -1,51 +1,51 @@
-﻿# AI Feedback Analyzer
+# AI Feedback Analyzer
 
-Production-ready POC для анализа пользовательского фидбека с помощью OpenAI.
+Production-ready Proof of Concept (POC) for analyzing customer feedback with OpenAI.
 
-Приложение принимает текст от пользователя, выполняет AI-анализ, сохраняет результат в Postgres через Prisma и показывает историю анализов в дашборде.
+The app accepts raw feedback text, generates sentiment + summary + actionable insight, stores the result in Postgres via Prisma, and displays analysis history in a clean dashboard.
 
-## Возможности
+## Features
 
-- Анализ фидбека через `POST /api/analyze`
-- Определение sentiment: `POSITIVE | NEUTRAL | NEGATIVE`
-- Краткое summary (1 предложение)
-- Actionable insight
-- Сохранение результатов в Postgres
-- Просмотр истории через `GET /api/feedbacks`
-- Минималистичный B2B UI (Sidebar + Form + Cards)
+- Analyze feedback via `POST /api/analyze`
+- Sentiment classification: `POSITIVE | NEUTRAL | NEGATIVE`
+- One-sentence summary
+- Actionable insight generation
+- Persist records in Postgres
+- Retrieve all feedback via `GET /api/feedbacks`
+- Minimal B2B dashboard UI (sidebar + form + cards)
 
-## Технологии
+## Tech Stack
 
 - Frontend: Next.js (App Router), React, TailwindCSS, Lucide Icons
 - Backend: Next.js Route Handlers (`runtime = "nodejs"`)
 - Database: Postgres + Prisma ORM
-- AI: OpenAI SDK (`gpt-4o-mini` по умолчанию)
-- Язык: TypeScript (strict)
+- AI: OpenAI SDK (`gpt-4o-mini` by default)
+- Language: TypeScript (strict)
 
-## Архитектура
+## Architecture
 
 ```text
 src/
   app/
     api/
-      analyze/route.ts       # POST анализ и сохранение
-      feedbacks/route.ts     # GET список фидбеков
-    page.tsx                 # Входная страница
+      analyze/route.ts       # POST: analyze and save feedback
+      feedbacks/route.ts     # GET: list feedback records
+    page.tsx                 # App entry page
   components/
-    FeedbackDashboard.tsx    # Sidebar + Main layout
-    FeedbackForm.tsx         # Форма отправки
-    FeedbackList.tsx         # Загрузка и отображение списка
-    FeedbackCard.tsx         # Карточка результата
+    FeedbackDashboard.tsx    # Sidebar + main layout
+    FeedbackForm.tsx         # Submit form with loading state
+    FeedbackList.tsx         # Fetch and render feedback list
+    FeedbackCard.tsx         # Single feedback card
   lib/
-    feedback-analysis.ts     # OpenAI вызов + валидация JSON ответа
-    prisma.ts                # Singleton Prisma client
+    feedback-analysis.ts     # OpenAI call + response parsing/validation
+    prisma.ts                # Prisma client singleton
   types/
-    feedback.ts              # Общие типы и type guards
+    feedback.ts              # Shared types and type guards
 prisma/
-  schema.prisma              # Модель Feedback
+  schema.prisma              # Feedback model
 ```
 
-## Модель данных (Prisma)
+## Data Model (Prisma)
 
 ```prisma
 model Feedback {
@@ -58,9 +58,9 @@ model Feedback {
 }
 ```
 
-## Переменные окружения
+## Environment Variables
 
-Файл `.env`:
+Create `.env` with:
 
 ```env
 POSTGRES_PRISMA_URL="postgres://user:password@host:5432/db?pgbouncer=true&connect_timeout=15"
@@ -69,29 +69,29 @@ OPENAI_API_KEY="your_openai_api_key_here"
 OPENAI_MODEL="gpt-4o-mini"
 ```
 
-`OPENAI_MODEL` можно заменить, например, на `gpt-3.5-turbo`.
+You can switch `OPENAI_MODEL` to another compatible model, for example `gpt-3.5-turbo`.
 
-## Запуск локально
+## Local Setup
 
-1. Установить зависимости:
+1. Install dependencies:
 
 ```bash
 npm install
 ```
 
-2. Подготовить базу данных:
+2. Sync database schema:
 
 ```bash
 npm run prisma:push
 ```
 
-3. Запустить dev-сервер:
+3. Start development server:
 
 ```bash
 npm run dev
 ```
 
-4. Открыть:
+4. Open:
 
 ```text
 http://localhost:3000
@@ -101,7 +101,7 @@ http://localhost:3000
 
 ### POST `/api/analyze`
 
-Анализирует текст через OpenAI, сохраняет результат в БД и возвращает созданную запись.
+Analyzes feedback using OpenAI, stores the result in the database, and returns the created record.
 
 Request body:
 
@@ -111,7 +111,7 @@ Request body:
 }
 ```
 
-Response `201` (пример):
+Response `201` example:
 
 ```json
 {
@@ -124,16 +124,16 @@ Response `201` (пример):
 }
 ```
 
-Ошибки:
+Errors:
 
-- `400`: отсутствует или пустое поле `text`
-- `500`: ошибка OpenAI, валидации ответа или БД
+- `400`: missing or empty `text`
+- `500`: OpenAI, parsing, or database error
 
 ### GET `/api/feedbacks`
 
-Возвращает все записи, отсортированные по `createdAt desc`.
+Returns all feedback records ordered by `createdAt desc`.
 
-Response `200`:
+Response `200` example:
 
 ```json
 [
@@ -148,63 +148,52 @@ Response `200`:
 ]
 ```
 
-## UI-компоненты
+## UI Components
 
-- `FeedbackForm`
-  - textarea
-  - submit-кнопка
-  - loading state со spinner
-  - отображение ошибок
-- `FeedbackList`
-  - загрузка `GET /api/feedbacks` при монтировании
-  - перезагрузка после нового сабмита
-  - обработка пустого состояния и ошибок
-- `FeedbackCard`
-  - badge по sentiment (`green/gray/red`)
-  - блоки summary и insight
+- `FeedbackForm`: textarea, submit button, loading spinner, error messages
+- `FeedbackList`: fetch on mount and refresh after new submission
+- `FeedbackCard`: sentiment badge colors (`green/gray/red`) + summary and insight
 
-## Скрипты
+## Scripts
 
 ```bash
-npm run dev            # запуск в режиме разработки
-npm run build          # production build
-npm run start          # запуск production сборки
-npm run lint           # eslint
+npm run dev
+npm run build
+npm run start
+npm run lint
 npm run prisma:generate
 npm run prisma:push
 ```
 
-## Проверка перед деплоем
+## Pre-Deploy Check
 
 ```bash
 npm run lint
 npm run build
 ```
 
-## Deploy на Vercel
+## Deploy on Vercel
 
-Базовый деплой:
-
-1. Подключить репозиторий к Vercel.
-2. Установить Environment Variables:
+1. Connect this repository to Vercel.
+2. Add environment variables:
    - `OPENAI_API_KEY`
-   - `OPENAI_MODEL` (опционально)
+   - `OPENAI_MODEL` (optional)
    - `POSTGRES_PRISMA_URL`
    - `POSTGRES_URL_NON_POOLING`
 3. Build Command: `npm run build`
 4. Install Command: `npm install`
 
-Используй Vercel Postgres или любой managed Postgres. Prisma подключается через pooled URL и non-pooling URL.
+Use Vercel Postgres or any managed Postgres provider. Prisma is configured for pooled and non-pooled connection URLs.
 
 ## Troubleshooting
 
 - `Failed to analyze and save feedback`
-  - проверить `OPENAI_API_KEY`
-  - проверить доступность OpenAI API
+  - verify `OPENAI_API_KEY`
+  - verify OpenAI API access and model permissions
 - `Could not load feedback records`
-  - проверить `POSTGRES_PRISMA_URL`
-  - выполнить `npm run prisma:push`
+  - verify `POSTGRES_PRISMA_URL`
+  - run `npm run prisma:push`
 
-## Лицензия
+## License
 
-Внутренний POC-проект. При необходимости добавьте выбранную лицензию в отдельный файл `LICENSE`.
+Internal POC project. Add a `LICENSE` file if needed.
